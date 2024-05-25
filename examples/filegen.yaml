@@ -1,0 +1,10 @@
+vars:
+  city: Moscow
+
+files:
+  - template_path: user.tmpl
+    output_path: 'user_{{ vars.local.user.id }}.yaml'
+    vars:
+      user:
+        id: 1
+        name: "John"
