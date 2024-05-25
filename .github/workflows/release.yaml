@@ -43,7 +43,7 @@ jobs:
             APP_VERSION=${{ steps.values.outputs.version_full}}
             BUILD_TIME=${{ steps.values.outputs.timestamp }}
           tags: |
-            artarts36/db-exporter:${{ steps.values.outputs.version_full}}
+            artarts36/filegen:${{ steps.values.outputs.version_full}}
 
   release-binaries:
     name: Release binaries
@@ -74,7 +74,7 @@ jobs:
           go_version: 1.21
           dest: dist
           pkg: ./cmd
-          prefix: db-exporter
+          prefix: filegen
           targets: windows/amd64,linux/amd64,linux/arm64,darwin/arm64,darwin/amd64
           v: true
           x: false
@@ -91,7 +91,7 @@ jobs:
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
           GPG_PASS: ${{secrets.GPG_PASS}}
         run: |
-          files=("db-exporter-darwin-amd64" "db-exporter-darwin-arm64" "db-exporter-linux-amd64" "db-exporter-linux-arm64" "db-exporter-windows-amd64.exe")
+          files=("filegen-darwin-amd64" "filegen-darwin-arm64" "filegen-linux-amd64" "filegen-linux-arm64" "filegen-windows-amd64.exe")
           
           cp README.md LICENSE dist
           
@@ -101,10 +101,10 @@ jobs:
             if [ -f "$file" ]; then
               filename=$(basename -- "$file")
               extension="${filename##*.}"
-              newFilename="db-exporter.$extension"
+              newFilename="filegen.$extension"
               if [ "${filename}" == "${extension}" ]; then
                 extension=""
-                newFilename="db-exporter"
+                newFilename="filegen"
               fi
 
               mv $file $newFilename
