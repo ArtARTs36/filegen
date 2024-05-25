@@ -45,7 +45,8 @@ func (cmd *Generate) Execute(ctx context.Context, params GenerateParams) error {
 			slog.DebugContext(ctx, fmt.Sprintf("[cmd] generating %q", file.OutputPath))
 
 			genErr := cmd.generator.Generate(ctx, generator.GeneratingFile{
-				File: file,
+				File:       file,
+				GlobalVars: cfg.Vars,
 			})
 			if genErr != nil {
 				slog.
