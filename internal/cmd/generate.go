@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -34,6 +35,8 @@ func (cmd *Generate) Execute(ctx context.Context, params GenerateParams) error {
 
 	wg := &sync.WaitGroup{}
 
+	errs := make([]error, 0)
+
 	for _, file := range cfg.Files {
 		wg.Add(1)
 
@@ -52,11 +55,17 @@ func (cmd *Generate) Execute(ctx context.Context, params GenerateParams) error {
 				slog.
 					With(slog.Any("err", genErr)).
 					ErrorContext(ctx, fmt.Sprintf("failed to generate file %q", file.OutputPath))
+
+				errs = append(errs, fmt.Errorf("failed to generate file %q: %w", file.OutputPath, genErr))
 			}
 		}()
 	}
 
 	wg.Wait()
+
+	if len(errs) > 0 {
+		return errors.Join(errs...)
+	}
 
 	return nil
 }
