@@ -2,6 +2,11 @@
 
 **filegen** - is console application for generate files of your templates
 
+Install as:
+```
+go install github.com/artarts36/filegen/cmd/main
+```
+
 ## Usage example
 
 config.yaml
