@@ -3,5 +3,6 @@ package template
 import "context"
 
 type Renderer interface {
-	Render(ctx context.Context, content []byte, vars map[string]interface{}) ([]byte, error)
+	RenderFile(ctx context.Context, path string, vars map[string]interface{}) ([]byte, error)
+	RenderString(ctx context.Context, content string, vars map[string]interface{}) ([]byte, error)
 }

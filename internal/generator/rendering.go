@@ -28,17 +28,12 @@ func (g *RenderingGenerator) Generate(ctx context.Context, file GeneratingFile) 
 		},
 	}
 
-	tmpl, err := g.filesystem.Get(file.File.TemplatePath)
-	if err != nil {
-		return fmt.Errorf("could not get template: %w", err)
-	}
-
-	content, err := g.renderer.Render(ctx, tmpl, vars)
+	content, err := g.renderer.RenderFile(ctx, file.File.TemplatePath, vars)
 	if err != nil {
 		return fmt.Errorf("could not render template: %w", err)
 	}
 
-	outputPath, err := g.renderer.Render(ctx, []byte(file.File.OutputPath), vars)
+	outputPath, err := g.renderer.RenderString(ctx, file.File.OutputPath, vars)
 	if err != nil {
 		return fmt.Errorf("could not render output path: %w", err)
 	}

@@ -2,12 +2,15 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/artarts36/filegen/internal/cmd"
 	"github.com/artarts36/filegen/internal/config"
 	"github.com/artarts36/filegen/internal/filesystem"
 	"github.com/artarts36/filegen/internal/generator"
 	"github.com/artarts36/filegen/internal/template"
 	cli "github.com/artarts36/singlecli"
+	"github.com/tyler-sommer/stick"
+	"os"
 )
 
 var (
@@ -37,9 +40,14 @@ func main() {
 func run(ctx *cli.Context) error {
 	fs := filesystem.NewLocal()
 
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("get working directory: %w", err)
+	}
+
 	command := cmd.NewGenerate(
 		config.CreateLoader(fs),
-		generator.NewRenderingGenerator(template.NewStickRenderer(), fs),
+		generator.NewRenderingGenerator(template.NewStickRenderer(stick.NewFilesystemLoader(wd)), fs),
 	)
 
 	return command.Execute(ctx.Context, cmd.GenerateParams{

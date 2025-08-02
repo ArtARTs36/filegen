@@ -8,42 +8,77 @@ import (
 )
 
 type StickRenderer struct {
-	engine *stick.Env
+	fileEngine   *stick.Env
+	stringEngine *stick.Env
 }
 
-func NewStickRenderer() *StickRenderer {
-	engine := stick.New(nil)
+func NewStickRenderer(loader stick.Loader) *StickRenderer {
+	fileEngine := stick.New(loader)
+	stringEngine := stick.New(nil)
 
-	engine.Functions["lower"] = func(_ stick.Context, args ...stick.Value) stick.Value {
+	lower := func(_ stick.Context, args ...stick.Value) stick.Value {
 		if len(args) != 1 {
 			return nil
 		}
 
-		return strings.ToLower(args[0].(string))
+		arg, ok := args[0].(string)
+		if !ok {
+			return nil
+		}
+
+		return strings.ToLower(arg)
 	}
 
-	engine.Functions["upper"] = func(_ stick.Context, args ...stick.Value) stick.Value {
+	upper := func(_ stick.Context, args ...stick.Value) stick.Value {
 		if len(args) != 1 {
 			return nil
 		}
 
-		return strings.ToUpper(args[0].(string))
+		arg, ok := args[0].(string)
+		if !ok {
+			return nil
+		}
+
+		return strings.ToUpper(arg)
 	}
+
+	fileEngine.Functions["lower"] = lower
+	fileEngine.Functions["upper"] = upper
+
+	stringEngine.Functions["lower"] = lower
+	stringEngine.Functions["upper"] = upper
 
 	return &StickRenderer{
-		engine: engine,
+		fileEngine:   fileEngine,
+		stringEngine: stringEngine,
 	}
 }
 
-func (r *StickRenderer) Render(
+func (r *StickRenderer) RenderFile(
 	_ context.Context,
-	content []byte,
+	path string,
 	vars map[string]interface{},
 ) ([]byte, error) {
 	stickVars := r.remapVars(vars)
 	var res bytes.Buffer
 
-	err := r.engine.Execute(string(content), &res, stickVars)
+	err := r.fileEngine.Execute(path, &res, stickVars)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Bytes(), nil
+}
+
+func (r *StickRenderer) RenderString(
+	_ context.Context,
+	content string,
+	vars map[string]interface{},
+) ([]byte, error) {
+	stickVars := r.remapVars(vars)
+	var res bytes.Buffer
+
+	err := r.stringEngine.Execute(content, &res, stickVars)
 	if err != nil {
 		return nil, err
 	}
