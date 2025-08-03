@@ -3,7 +3,9 @@ package template
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"github.com/tyler-sommer/stick"
+	"os"
 	"strings"
 )
 
@@ -42,11 +44,37 @@ func NewStickRenderer(loader stick.Loader) *StickRenderer {
 		return strings.ToUpper(arg)
 	}
 
+	loadJSON := func(_ stick.Context, args ...stick.Value) stick.Value {
+		if len(args) != 1 {
+			panic("load_json expects one argument")
+		}
+
+		path, ok := args[0].(string)
+		if !ok {
+			panic("load_json expects string argument")
+		}
+
+		content, err := os.ReadFile(path)
+		if err != nil {
+			panic("unable to read " + path + ": " + err.Error())
+		}
+
+		var val interface{}
+
+		if err = json.Unmarshal(content, &val); err != nil {
+			panic("unable to unmarshal json " + path + ": " + err.Error())
+		}
+
+		return val
+	}
+
 	fileEngine.Functions["lower"] = lower
 	fileEngine.Functions["upper"] = upper
+	fileEngine.Functions["load_json"] = loadJSON
 
 	stringEngine.Functions["lower"] = lower
 	stringEngine.Functions["upper"] = upper
+	stringEngine.Functions["load_json"] = loadJSON
 
 	return &StickRenderer{
 		fileEngine:   fileEngine,
@@ -59,10 +87,9 @@ func (r *StickRenderer) RenderFile(
 	path string,
 	vars map[string]interface{},
 ) ([]byte, error) {
-	stickVars := r.remapVars(vars)
 	var res bytes.Buffer
 
-	err := r.fileEngine.Execute(path, &res, stickVars)
+	err := r.fileEngine.Execute(path, &res, r.remapVars(vars))
 	if err != nil {
 		return nil, err
 	}
@@ -75,10 +102,13 @@ func (r *StickRenderer) RenderString(
 	content string,
 	vars map[string]interface{},
 ) ([]byte, error) {
-	stickVars := r.remapVars(vars)
+	return r.renderString(content, r.remapVars(vars))
+}
+
+func (r *StickRenderer) renderString(content string, vars map[string]stick.Value) ([]byte, error) {
 	var res bytes.Buffer
 
-	err := r.stringEngine.Execute(content, &res, stickVars)
+	err := r.stringEngine.Execute(content, &res, vars)
 	if err != nil {
 		return nil, err
 	}

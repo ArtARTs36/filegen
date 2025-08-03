@@ -5,6 +5,9 @@ BUILD_FLAGS := -ldflags="-X 'main.Version=v0.1.0' -X 'main.BuildDate=${CURRENT_D
 build:
 	go build ${BUILD_FLAGS} -o filegen cmd/main.go
 
+install: build
+	sudo mv filegen /usr/local/bin/filegen
+
 help:
 	go run ./cmd/main.go --help
 
